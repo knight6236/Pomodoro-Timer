@@ -1,6 +1,20 @@
 {
   "app": {
-    "signingConfigs": [],
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "storePassword": "0000001A6AFDF1AC46CCBBD1ACBB7E728B73113A3C080CEC3F7AD4BEF851E9006C220EA8932A3AE080B6",
+          "certpath": "D:/Codes/Hos/Pomodoro-Timer/pt.cer",
+          "keyAlias": "pt",
+          "keyPassword": "0000001ACE3C37E7B2226F65B24A3C7197863674D1B4BB1E0E7625BD0F876F9103E6769724E8CAE4B8BD",
+          "profile": "D:/Codes/Hos/Pomodoro-Timer/ptRelease.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "D:/Codes/Hos/Pomodoro-Timer/pt.p12"
+        }
+      }
+    ],
     "products": [
       {
         "name": "default",
