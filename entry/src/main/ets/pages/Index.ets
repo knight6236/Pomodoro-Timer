@@ -36,7 +36,7 @@ interface CategoryTimeConfig {
 
 // 添加分类时间配置
 const categoryTimeConfigs: Record<TaskCategory, CategoryTimeConfig> = {
-  [TaskCategory.All]: { workTime: 1, breakTime: 1 },
+  [TaskCategory.All]: { workTime: 25, breakTime: 5 },
   [TaskCategory.Study]: { workTime: 45, breakTime: 10 }, // 学习时间更长
   [TaskCategory.Work]: { workTime: 25, breakTime: 5 }, // 标准番茄时间
   [TaskCategory.Life]: { workTime: 15, breakTime: 5 }, // 生活任务时间较短
@@ -66,17 +66,13 @@ interface ThemeColors {
   textSecondary: string;
 }
 
-// 添加优先级顺序接口
-interface PriorityOrder {
-  high: number;
-  medium: number;
-  low: number;
-}
-
 @Entry
 @Component
 struct Index {
-  @State remainingTime: number = categoryTimeConfigs[TaskCategory.All].workTime;
+  @State selectedCategory: TaskCategory = TaskCategory.All; // 显示当前类别
+  @State addCategory: TaskCategory = TaskCategory.Work; // 新增当前类别
+  @State selectedPriority: TaskPriority = TaskPriority.Medium; // 新增状态
+  @State remainingTime: number = categoryTimeConfigs[this.selectedCategory].workTime * 60;
   @State isRunning: boolean = false;
   @State isWorkTime: boolean = true;
   @State tasks: Task[] = [];
@@ -110,8 +106,6 @@ struct Index {
   });
   // 当前要删除的任务ID
   @State taskToDelete: Task | null = null;
-  @State selectedCategory: TaskCategory = TaskCategory.All; // 新增状态
-  @State selectedPriority: TaskPriority = TaskPriority.Medium; // 新增状态
 
   // 定义对话框内容构建器
   @Builder
@@ -136,15 +130,15 @@ struct Index {
         { value: TaskCategory.Study },
         { value: TaskCategory.Life },
         { value: TaskCategory.Other }
-      ])
-        .selected(0)
-        .value(TaskCategory.Work)
+      ])// .selected(0)
+        .value(this.addCategory)
         .width('90%')
         .selectedOptionBgColor(this.themeColors.selectedBackground)
         .selectedOptionFontColor(this.themeColors.textPrimary)
         .margin({ top: 16 })
         .onSelect((index, value) => {
-          this.selectedCategory = value as TaskCategory;
+          this.addCategory = value as TaskCategory;
+          this.currentTaskId = -1
         })
 
       // 添加优先级选择
@@ -302,15 +296,15 @@ struct Index {
 
   // 获取当前任务的时间配置
   private getCurrentTaskTimeConfig(): CategoryTimeConfig {
-    if (this.selectedCategory) {
-      return categoryTimeConfigs[this.selectedCategory]
-    }
-    if (this.currentTaskId === -1) {
-      return categoryTimeConfigs[TaskCategory.All]; // 默认使用工作配置
-    }
+    // if (this.currentTaskId === -1) {
+    //   return categoryTimeConfigs[TaskCategory.All]; // 默认使用工作配置
+    // }
     const currentTask = this.tasks.find(task => task.id === this.currentTaskId);
     if (currentTask) {
       return categoryTimeConfigs[currentTask.category];
+    }
+    if (this.selectedCategory) {
+      return categoryTimeConfigs[this.selectedCategory]
     }
     return categoryTimeConfigs[TaskCategory.Work];
   }
@@ -487,7 +481,8 @@ struct Index {
           }
           .width('100%')
           .padding(8)
-          .backgroundColor(this.currentTaskId === task.id ? '#FFF5F5' : this.themeColors.cardBg)
+          .backgroundColor(this.currentTaskId === task.id ? this.themeColors.selectedBackground :
+          this.themeColors.cardBg)
           .borderRadius(10)
           .opacity(task.completed ? 0.7 : 1)
           .shadow({
@@ -698,7 +693,11 @@ struct Index {
       })
       return
     }
-    this.currentTaskId = task.id;
+    if (this.currentTaskId === task.id) {
+      this.currentTaskId = -1
+    } else {
+      this.currentTaskId = task.id;
+    }
     // 选择新任务时重置计时器
     this.resetTimer();
   }
@@ -727,7 +726,7 @@ struct Index {
       pomodoros: 0,
       todayPomodoros: 0,
       lastPomodoroDate: new Date().toDateString(),
-      category: this.selectedCategory,
+      category: this.addCategory,
       priority: this.selectedPriority || TaskPriority.Medium
     };
 
@@ -872,20 +871,19 @@ struct Index {
                 .borderRadius(10)
                 .margin({ right: 8 })
 
-              if (this.selectedCategory === TaskCategory.All) {
-                Text(task.category)
-                  .fontSize(16)
-                  .fontColor(this.themeColors.primary)
-                  .backgroundColor(this.themeColors.selectedBackground)
-                  .padding({
-                    left: 8,
-                    right: 8,
-                    top: 2,
-                    bottom: 2
-                  })
-                  .borderRadius(12)
-                  .margin({ right: 12 })
-              }
+              Text(task.category)
+                .fontSize(16)
+                .fontColor(this.themeColors.primary)
+                .backgroundColor(this.themeColors.selectedBackground)
+                .padding({
+                  left: 8,
+                  right: 8,
+                  top: 2,
+                  bottom: 2
+                })
+                .borderRadius(12)
+                .margin({ right: 12 })
+                .visibility(this.selectedCategory === TaskCategory.All ? Visibility.Visible : Visibility.None)
 
               Text(task.title)
                 .fontSize(20)
